@@ -1,0 +1,74 @@
+CREATE TABLE funcionario (
+    id_funcionario  NUMBER GENERATED ALWAYS AS IDENTITY,
+    matricula       NUMBER NOT NULL,
+    nome            VARCHAR2(255) NOT NULL,
+    endereco        VARCHAR2(255) NOT NULL,
+    telefone        VARCHAR2(20) NOT NULL,
+    cpf             VARCHAR2(14) NOT NULL,
+    data_nascimento DATE NOT NULL,
+    situacao        VARCHAR2(2) NOT NULL CHECK ( situacao IN ( 'A', 'I' ) ),
+    email           VARCHAR2(255) NOT NULL,
+    cargo           VARCHAR2(50) NOT NULL,
+    login           VARCHAR2(50) NOT NULL,
+    senha           VARCHAR2(50) NOT NULL,
+    CONSTRAINT pk_funcionario PRIMARY KEY ( id_funcionario )
+);
+
+CREATE TABLE fornecedor (
+    id_fornecedor NUMBER GENERATED ALWAYS AS IDENTITY,
+    matricula     NUMBER NOT NULL,
+    nome_fantasia VARCHAR2(255) NOT NULL,
+    endereco      VARCHAR2(255) NOT NULL,
+    telefone      VARCHAR2(20) NOT NULL,
+    cnpj          VARCHAR2(18) NOT NULL,
+    tempo_entrega VARCHAR2(255) NOT NULL, /*Data ou varchar?*/
+    email         VARCHAR2(255) NOT NULL,
+    CONSTRAINT pk_fornecedor PRIMARY KEY ( id_fornecedor )
+);
+
+
+CREATE TABLE material (
+    id_material   NUMBER GENERATED ALWAYS AS IDENTITY,
+    nome          VARCHAR2(50) NOT NULL,
+    codigo_barras VARCHAR2(20) NOT NULL,
+    valor_compra  NUMBER(10,2) NOT NULL,
+    id_fornecedor NUMBER NOT NULL,
+    qt_minima     NUMBER(18,6) NOT NULL,
+    fabricante    VARCHAR2(50) NOT NULL,
+    descricao     VARCHAR2(255) NOT NULL,
+    CONSTRAINT pk_material PRIMARY KEY ( id_material ),
+    CONSTRAINT fk_material_fornecedor FOREIGN KEY ( id_fornecedor ) REFERENCES fornecedor ( id_fornecedor )
+);
+
+CREATE TABLE estoque (
+    id_estoque  NUMBER GENERATED ALWAYS AS IDENTITY,
+    id_material NUMBER NOT NULL,
+    quantidade  NUMBER NOT NULL,
+    CONSTRAINT pk_estoque PRIMARY KEY ( id_estoque ),
+    CONSTRAINT fk_estoque_material FOREIGN KEY ( id_material ) REFERENCES material ( id_material )
+);
+
+CREATE TABLE nota_fiscal (
+    id_nota         NUMBER GENERATED ALWAYS AS IDENTITY,
+    cod_operacao    NUMBER NOT NULL,
+    tipo_nota       VARCHAR2(2) NOT NULL CHECK ( tipo_nota IN ( 'E', 'S' ) ), /* Entrada/Saida */
+    id_funcionario  NUMBER NOT NULL,
+    data_nota       DATE NOT NULL,
+    valor_total     NUMBER(10,2) NOT NULL,
+    forma_pagamento VARCHAR2(50) NOT NULL,
+    situacao        VARCHAR2(2) NOT NULL CHECK ( situacao IN ( 'A', 'C' ) ),  /* Ativa/Cancelada */
+    CONSTRAINT pk_nota_fiscal PRIMARY KEY ( id_nota ),
+    CONSTRAINT fk_nota_fiscal_funcionario FOREIGN KEY ( id_funcionario ) REFERENCES funcionario ( id_funcionario )
+);
+
+CREATE TABLE nota_fiscal_item (
+    id_item     NUMBER GENERATED ALWAYS AS IDENTITY,
+    id_nota     NUMBER NOT NULL,
+    id_material NUMBER NOT NULL,
+    quantidade  NUMBER(18,6) NOT NULL,
+    valor_unit  NUMBER(10,2) NOT NULL,
+    valor_total NUMBER(10,2) NOT NULL,
+    CONSTRAINT pk_nota_fiscal_item PRIMARY KEY ( id_item ),
+    CONSTRAINT fk_nota_fiscal_item_nota_fiscal FOREIGN KEY ( id_nota ) REFERENCES nota_fiscal ( id_nota ),
+    CONSTRAINT fk_nota_fiscal_item_material FOREIGN KEY ( id_material ) REFERENCES material ( id_material )
+);
